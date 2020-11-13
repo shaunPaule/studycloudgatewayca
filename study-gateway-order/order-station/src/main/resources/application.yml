@@ -1,0 +1,24 @@
+server:
+  port: 8010
+  servlet:
+    context-path: /order
+spring:
+  application:
+    name: iorder
+  cloud:
+    consul:
+      host: 127.0.0.1
+      port: 8500
+      enabled: true
+      discovery:
+        register: true
+        ip-address: 127.0.0.1
+        port: ${server.port}
+        instance-id: ${spring.application.name}:${spring.cloud.consul.discovery.ip-address}:${server.port}
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: ${server.servlet.context-path}/actuator/health
+        health-check-interval: 10s
+env:
+  client-path:
+    u-store-path: http://istore/store

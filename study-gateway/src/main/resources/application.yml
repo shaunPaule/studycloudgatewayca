@@ -1,0 +1,52 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /gateway
+spring:
+  application:
+    name: wzgateway
+  cloud:
+    gateway:
+      routes:
+      - id: order-router
+        uri: lb://iorder
+        predicates:
+        - Path=/order/**
+        filters:
+        - name: CircuitBreaker
+          args:
+            name: fallbackcmd
+            fallbackUri: forward:/actuator/health
+            statusCodes:
+            - 500
+            - "NOT_FOUND"
+      - id: store-router
+        uri: lb://istore
+        predicates:
+          - Path=/store/**
+      - id: hystrix-router
+        uri: http://127.0.0.1:9090
+        predicates:
+          - Path=/hystrix/*/fallback
+      discovery:
+        locator:
+          enabled: true
+    consul:
+      host: 127.0.0.1
+      port: 8500
+      enabled: true
+      discovery:
+        register: true
+        ip-address: 127.0.0.1
+        port: ${server.port}
+        instance-id: ${spring.application.name}:${spring.cloud.consul.discovery.ip-address}:${server.port}
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+    circuitbreaker:
+      resilience4j:
+        enabled: true
+    loadbalancer:
+      ribbon:
+        enabled: false
